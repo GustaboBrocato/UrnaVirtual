@@ -101,7 +101,7 @@ public class Main {
         eleccion = r.nextInt();
         switch(eleccion){
             case 1:
-                System.out.println(" ");
+                votacionPresidencia();
                 break;
             case 2:
                 System.out.println(" ");
