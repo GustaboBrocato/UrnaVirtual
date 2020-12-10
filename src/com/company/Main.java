@@ -2,6 +2,7 @@ package com.company;
 
 import javax.swing.*;
 import java.io.*;
+import java.util.ArrayList;
 import java.util.Scanner;
 
 public class Main {
@@ -83,9 +84,6 @@ public class Main {
         }
 
     }
-    public static void verificacionVotante(){
-
-    }
     public static void menuVotacion(){
         Scanner r = new Scanner(System.in);
         int eleccion;
@@ -104,7 +102,7 @@ public class Main {
                 votacionPresidencia();
                 break;
             case 2:
-                System.out.println(" ");
+                votacionDiputadura();
                 break;
             case 3:
                 votacionAlcaldia();
@@ -116,9 +114,9 @@ public class Main {
     }
     public static void votacionAlcaldia() {
         Scanner r = new Scanner(System.in);
-        boolean repetir = true;
+        boolean repetir = true,existe = true;
         int numeroCandidatos = 0, indiceDepartamento=0,voto,tipo=1;
-        String municipalidadPostulada = "ninguna";
+        String municipalidadPostulada = "ninguna", cedula;
         String nombreArchivo = "";
         System.out.println("Sistema de voto virtual para la Alcaldia");
         System.out.println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
@@ -142,9 +140,19 @@ public class Main {
                 System.out.println("***Su eleccion no es valida, Porfavor ingrese el indice de uno de los departamentos***");
             }
         }
-            File archivo;
-            FileWriter agregar;
-            PrintWriter escribir;
+        File archivo;
+        FileWriter agregar;
+        PrintWriter escribir;
+
+        r.nextLine();
+        System.out.println("Porfavor ingrese su numero de identidad: en el siguiente formato: (0000-1990-01234)");
+        cedula = r.nextLine();
+        existe=verificarListaVotante(r,cedula,tipo,municipalidadPostulada);
+        if(existe==true){
+            System.out.println("Usted ya ha votado en la municipalidad "+municipalidadPostulada+".");
+            System.exit(0);
+        }else{
+            AgregarListaVotante(r,tipo,municipalidadPostulada,cedula);
             try {
                 FileReader entrada = new FileReader("cantidadCandidatos" + municipalidadPostulada + ".txt");
                 BufferedReader br = new BufferedReader(entrada);
@@ -165,140 +173,166 @@ public class Main {
             String partidos[]=new String[numeroCandidatos];
             String archivos[]=new String[numeroCandidatos];
 
-        try{
-            int contador = 0;
-            FileReader entrada = new FileReader("nombresAlcaldia"+municipalidadPostulada+".txt");
-            BufferedReader br = new BufferedReader(entrada);
-            while(temp!=null){
-                temp[contador] = br.readLine();
-                nombres[contador]=temp[contador];
-                contador++;
-                if(contador==numeroCandidatos){
-                    temp=null;
+            try{
+                int contador = 0;
+                FileReader entrada = new FileReader("nombresAlcaldia"+municipalidadPostulada+".txt");
+                BufferedReader br = new BufferedReader(entrada);
+                while(temp!=null){
+                    temp[contador] = br.readLine();
+                    nombres[contador]=temp[contador];
+                    contador++;
+                    if(contador==numeroCandidatos){
+                        temp=null;
+                    }
+                }
+                entrada.close();
+
+            }catch(IOException e){
+                System.out.println("No se encontro el archivo");
+            }
+            try{
+                int contador = 0;
+                FileReader entrada = new FileReader("apellidosAlcaldia"+municipalidadPostulada+".txt");
+                BufferedReader br = new BufferedReader(entrada);
+                while(temp2!=null){
+                    temp2[contador] = br.readLine();
+                    apellidos[contador]=temp2[contador];
+                    contador++;
+                    if(contador==numeroCandidatos){
+                        temp2=null;
+                    }
+                }
+                entrada.close();
+
+            }catch(IOException e){
+                System.out.println("No se encontro el archivo");
+            }
+            try{
+                int contador = 0;
+                FileReader entrada = new FileReader("nombreArchivoAlcaldia"+municipalidadPostulada+".txt");
+                BufferedReader br = new BufferedReader(entrada);
+                while(temp4!=null){
+                    temp4[contador] = br.readLine();
+                    archivos[contador]=temp4[contador];
+                    contador++;
+                    if(contador==numeroCandidatos){
+                        temp4=null;
+                    }
+                }
+                entrada.close();
+
+            }catch(IOException e){
+                System.out.println("No se encontro el archivo");
+            }
+            try{
+                int contador = 0;
+                FileReader entrada = new FileReader("partidosAlcaldia"+municipalidadPostulada+".txt");
+                BufferedReader br = new BufferedReader(entrada);
+                while(temp3!=null){
+                    temp3[contador] = br.readLine();
+                    if(temp3[contador].equals("1")){
+                        partidos[contador]="Partido Liberal";
+                    }else if(temp3[contador].equals("2")){
+                        partidos[contador]="Partido Nacional";
+                    }else if(temp3[contador].equals("3")){
+                        partidos[contador]="Partido Libre";
+                    }
+                    contador++;
+                    if(contador==numeroCandidatos){
+                        temp3=null;
+                    }
+                }
+                entrada.close();
+
+            }catch(IOException e){
+                System.out.println("No se encontro el archivo");
+            }
+            while(repetir == true){
+                System.out.println("A continuacion porfavor elija el indice del candidato que desea: ");
+                System.out.println("Los candidatos disponibles en la municipalidad de: " + municipalidadPostulada + " son: ");
+                System.out.println(" ");
+                if (numeroCandidatos == 1) {
+                    System.out.println("1. " + nombres[0] + " " + apellidos[0] + " " + partidos[0]);
+                    voto = r.nextInt();
+                    repetir = confirmarVoto(r,voto,nombres,apellidos,partidos);
+                    if(repetir == true) {
+                        nombreArchivo = archivos[voto - 1];
+                        castVote(tipo,municipalidadPostulada, nombreArchivo,indiceDepartamento);
+                        repetir = false;
+                    }else{
+                        repetir = true;
+                    }
+
+
+                } else if (numeroCandidatos == 2) {
+                    System.out.println("1. " + nombres[0] + " " + apellidos[0] + " " + partidos[0]);
+                    System.out.println("2. " + nombres[1] + " " + apellidos[1] + " " + partidos[1]);
+                    voto = r.nextInt();
+                    repetir = confirmarVoto(r,voto,nombres,apellidos,partidos);
+                    if(repetir == true) {
+                        nombreArchivo = archivos[voto - 1];
+                        castVote(tipo,municipalidadPostulada, nombreArchivo,indiceDepartamento);
+                        repetir = false;
+                    }else{
+                        repetir = true;
+                    }
+
+                } else if (numeroCandidatos == 3) {
+                    System.out.println("1. " + nombres[0] + " " + apellidos[0] + " " + partidos[0]);
+                    System.out.println("2. " + nombres[1] + " " + apellidos[1] + " " + partidos[1]);
+                    System.out.println("3. " + nombres[2] + " " + apellidos[2] + " " + partidos[2]);
+                    voto = r.nextInt();
+                    repetir = confirmarVoto(r,voto,nombres,apellidos,partidos);
+                    if(repetir == true) {
+                        nombreArchivo = archivos[voto - 1];
+                        castVote(tipo,municipalidadPostulada, nombreArchivo,indiceDepartamento);
+                        repetir = false;
+                    }else{
+                        repetir = true;
+                    }
+
                 }
             }
-            entrada.close();
-
-        }catch(IOException e){
-            System.out.println("No se encontro el archivo");
         }
-        try{
-            int contador = 0;
-            FileReader entrada = new FileReader("apellidosAlcaldia"+municipalidadPostulada+".txt");
-            BufferedReader br = new BufferedReader(entrada);
-            while(temp2!=null){
-                temp2[contador] = br.readLine();
-                apellidos[contador]=temp2[contador];
-                contador++;
-                if(contador==numeroCandidatos){
-                    temp2=null;
-                }
-            }
-            entrada.close();
 
-        }catch(IOException e){
-            System.out.println("No se encontro el archivo");
-        }
-        try{
-            int contador = 0;
-            FileReader entrada = new FileReader("nombreArchivoAlcaldia"+municipalidadPostulada+".txt");
-            BufferedReader br = new BufferedReader(entrada);
-            while(temp4!=null){
-                temp4[contador] = br.readLine();
-                archivos[contador]=temp4[contador];
-                contador++;
-                if(contador==numeroCandidatos){
-                    temp4=null;
-                }
-            }
-            entrada.close();
-
-        }catch(IOException e){
-            System.out.println("No se encontro el archivo");
-        }
-        try{
-            int contador = 0;
-            FileReader entrada = new FileReader("partidosAlcaldia"+municipalidadPostulada+".txt");
-            BufferedReader br = new BufferedReader(entrada);
-            while(temp3!=null){
-                temp3[contador] = br.readLine();
-                if(temp3[contador].equals("1")){
-                    partidos[contador]="Partido Liberal";
-                }else if(temp3[contador].equals("2")){
-                    partidos[contador]="Partido Nacional";
-                }else if(temp3[contador].equals("3")){
-                    partidos[contador]="Partido Libre";
-                }
-                contador++;
-                if(contador==numeroCandidatos){
-                    temp3=null;
-                }
-            }
-            entrada.close();
-
-        }catch(IOException e){
-            System.out.println("No se encontro el archivo");
-        }
-        while(repetir == true){
-            System.out.println("A continuacion porfavor elija el indice del candidato que desea: ");
-            System.out.println("Los candidatos disponibles en la municipalidad de: " + municipalidadPostulada + " son: ");
-            System.out.println(" ");
-            if (numeroCandidatos == 1) {
-                System.out.println("1. " + nombres[0] + " " + apellidos[0] + " " + partidos[0]);
-                voto = r.nextInt();
-                repetir = confirmarVoto(r,voto,nombres,apellidos,partidos);
-                if(repetir == true) {
-                    nombreArchivo = archivos[voto - 1];
-                    castVoteAlcaldia(tipo,municipalidadPostulada, nombreArchivo);
-                    repetir = false;
-                }else{
-                    repetir = true;
-                }
-
-
-            } else if (numeroCandidatos == 2) {
-                System.out.println("1. " + nombres[0] + " " + apellidos[0] + " " + partidos[0]);
-                System.out.println("2. " + nombres[1] + " " + apellidos[1] + " " + partidos[1]);
-                voto = r.nextInt();
-                repetir = confirmarVoto(r,voto,nombres,apellidos,partidos);
-                if(repetir == true) {
-                    nombreArchivo = archivos[voto - 1];
-                    castVoteAlcaldia(tipo,municipalidadPostulada, nombreArchivo);
-                    repetir = false;
-                }else{
-                    repetir = true;
-                }
-
-            } else if (numeroCandidatos == 3) {
-                System.out.println("1. " + nombres[0] + " " + apellidos[0] + " " + partidos[0]);
-                System.out.println("2. " + nombres[1] + " " + apellidos[1] + " " + partidos[1]);
-                System.out.println("3. " + nombres[2] + " " + apellidos[2] + " " + partidos[2]);
-                voto = r.nextInt();
-                repetir = confirmarVoto(r,voto,nombres,apellidos,partidos);
-                if(repetir == true) {
-                    nombreArchivo = archivos[voto - 1];
-                    castVoteAlcaldia(tipo,municipalidadPostulada, nombreArchivo);
-                    repetir = false;
-                }else{
-                    repetir = true;
-                }
-
-            }
-        }
-        //
-        }
+    }
     public static void votacionPresidencia(){
         Scanner r = new Scanner(System.in);
+        String cedula, municipalidadPostulada = "ninguna";
         boolean repetir = true;
-        int numeroCandidatos = 0,voto,tipo=2;
+        boolean existe = true;
+        int numeroCandidatos = 0,voto,tipo=2,indiceDepartamento=0;
         String tipoCandidatura = "Presidencia";
         String nombreArchivo = "";
+
         System.out.println("Sistema de voto virtual para la Presidencia");
         System.out.println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
         System.out.println(" ");
+
         File archivo;
         FileWriter agregar;
         PrintWriter escribir;
+
+        System.out.println("Porfavor ingrese su numero de identidad: en el siguiente formato: (0000-1990-01234)");
+        cedula = r.nextLine();
+        existe=verificarListaVotante(r,cedula,tipo,municipalidadPostulada);
+        if(existe==true){
+            System.out.println("Usted ya ha votado para la presidencia.");
+            System.exit(0);
+        }else {
+            AgregarListaVotante(r, tipo, municipalidadPostulada, cedula);
+        }
+            try {
+                FileReader entrada = new FileReader("cantidadCandidatos" + municipalidadPostulada + ".txt");
+                BufferedReader br = new BufferedReader(entrada);
+                Scanner sc = new Scanner(entrada);
+                while (sc.hasNextLine()) {
+                    numeroCandidatos = sc.nextInt();
+                }
+                entrada.close();
+            }catch (IOException e){
+                System.out.println("No se encontro el archivo");
+            }
         try {
             FileReader entrada = new FileReader("cantidadCandidatos" + tipoCandidatura + ".txt");
             BufferedReader br = new BufferedReader(entrada);
@@ -403,7 +437,7 @@ public class Main {
                 repetir = confirmarVoto(r,voto,nombres,apellidos,partidos);
                 if(repetir == true) {
                     nombreArchivo = archivos[voto - 1];
-                    castVoteAlcaldia(tipo,tipoCandidatura, nombreArchivo);
+                    castVote(tipo,tipoCandidatura, nombreArchivo,indiceDepartamento);
                     repetir = false;
                 }else{
                     repetir = true;
@@ -417,7 +451,7 @@ public class Main {
                 repetir = confirmarVoto(r,voto,nombres,apellidos,partidos);
                 if(repetir == true) {
                     nombreArchivo = archivos[voto - 1];
-                    castVoteAlcaldia(tipo,tipoCandidatura, nombreArchivo);
+                    castVote(tipo,tipoCandidatura, nombreArchivo,indiceDepartamento);
                     repetir = false;
                 }else{
                     repetir = true;
@@ -431,7 +465,7 @@ public class Main {
                 repetir = confirmarVoto(r,voto,nombres,apellidos,partidos);
                 if(repetir == true) {
                     nombreArchivo = archivos[voto - 1];
-                    castVoteAlcaldia(tipo,tipoCandidatura, nombreArchivo);
+                    castVote(tipo,tipoCandidatura, nombreArchivo,indiceDepartamento);
                     repetir = false;
                 }else{
                     repetir = true;
@@ -441,6 +475,104 @@ public class Main {
         }
 
     }
+    public static void votacionDiputadura(){
+        Scanner r = new Scanner(System.in);
+        boolean terminar = false,existe = true;
+        int numeroCandidatos = 0, indiceDepartamento=0,voto,tipo=3;
+        String municipalidadPostulada = "ninguna", cedula;
+        String nombreArchivo = "";
+        System.out.println("Sistema de voto virtual para la Diputadura");
+        System.out.println("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
+        System.out.println(" ");
+        while (indiceDepartamento < 1 || indiceDepartamento > 18) {
+            System.out.println("En que departamento del pais reside? Elija el indice: ");
+            System.out.println(" ");
+            System.out.println("1. Atlantida\t\t2. Colon\t\t3. Comayagua\t\t4. Copan");
+            System.out.println(" ");
+            System.out.println("5. Cortes\t\t6. Choluteca\t\t7. El Paraiso\t\t8. Francisco Morazan");
+            System.out.println(" ");
+            System.out.println("9. Gracias a Dios\t\t10. Intibuca\t\t11. Islas de la Bahia\t\t12. La Paz");
+            System.out.println(" ");
+            System.out.println("13. Lempira\t\t14. Ocotepeque\t\t15. Olancho\t\t16. Santa Barbara");
+            System.out.println(" ");
+            System.out.println("17. Valle\t\t18. Yoro");
+            indiceDepartamento = r.nextInt();
+            if (indiceDepartamento < 1 || indiceDepartamento > 18) {
+                System.out.println("***Su eleccion no es valida, Porfavor ingrese el indice de uno de los departamentos***");
+            }
+        }
+        File archivo;
+        FileWriter agregar;
+        PrintWriter escribir;
+
+        r.nextLine();
+        System.out.println("Porfavor ingrese su numero de identidad: en el siguiente formato: (0000-1990-01234)");
+        cedula = r.nextLine();
+        existe=verificarListaVotante(r,cedula,tipo,municipalidadPostulada);
+        if(existe==true){
+            System.out.println("Usted ya ha votado para la Diputadura");
+            System.exit(0);
+        }else{
+            try {
+                FileReader entrada = new FileReader("cantidadCandidatos" + indiceDepartamento + ".txt");
+                BufferedReader br = new BufferedReader(entrada);
+                Scanner sc = new Scanner(entrada);
+                while (sc.hasNextLine()) {
+                    numeroCandidatos = sc.nextInt();
+                }
+                entrada.close();
+            }catch (IOException e){
+                System.out.println("No se encontro el archivo cantidadCandidatos");
+            }
+            ArrayList<String> infoCandidatos = new ArrayList<String>();
+            ArrayList<String> nArchivos = new ArrayList<String>();
+
+            try{
+                FileReader entrada = new FileReader("candidatosDiputadura" + indiceDepartamento + ".txt");
+                BufferedReader br = new BufferedReader(entrada);
+                Scanner sc = new Scanner(entrada);
+                while(sc.hasNextLine()){
+                    infoCandidatos.add(sc.nextLine());
+                }
+                entrada.close();
+
+            }catch(IOException e){
+                System.out.println("No se encontro el archivo candidatoDiputadura");
+            }
+            String temp[] = new String[numeroCandidatos];
+            String archivos[]=new String[numeroCandidatos];
+            try{
+                int contador = 0;
+                FileReader entrada = new FileReader("nombreArchivoDiputadura"+indiceDepartamento+".txt");
+                BufferedReader br = new BufferedReader(entrada);
+                while(temp!=null){
+                    temp[contador] = br.readLine();
+                    archivos[contador]=temp[contador];
+                    nArchivos.add(contador,archivos[contador]);
+                    contador++;
+                    if(contador==numeroCandidatos){
+                        temp=null;
+                    }
+                }
+                entrada.close();
+
+            }catch(IOException e){
+                System.out.println("No se encontro el archivo nombreArchivoDiputadura");
+            }
+
+            System.out.println("A continuacion porfavor elija el indice del candidato que desea: ");
+            terminar = votoDiputados(r,indiceDepartamento,tipo,cantidadDiputados(indiceDepartamento),infoCandidatos,nArchivos);
+            if(terminar == true){
+                System.out.println("Sus votos han sido agregados.");
+                AgregarListaVotante(r,tipo,municipalidadPostulada,cedula);
+            } else{
+                System.out.println("error");
+                votacionDiputadura();
+            }
+        }
+
+    }
+
     public static boolean confirmarVoto(Scanner r,int voto,String[]nombres,String[]apellidos,String[]partidos){
         boolean confirmacion=false;
         int eleccion;
@@ -454,7 +586,7 @@ public class Main {
         }
         return confirmacion;
     }
-    public static void castVoteAlcaldia(int tipo,String municipalidadPostulada,String nombreArchivo){
+    public static void castVote(int tipo,String municipalidadPostulada,String nombreArchivo,int indiceDepartamento){
         int vototemp=0;
         File archivo;
         FileWriter agregar;
@@ -506,12 +638,204 @@ public class Main {
                         e.printStackTrace();
                     }
                     break;
+                case 3:
+                    try {
+                        FileReader entrada = new FileReader("votosDiputadura" + indiceDepartamento + nombreArchivo + ".txt");
+                        BufferedReader br = new BufferedReader(entrada);
+                        Scanner sc = new Scanner(entrada);
+                        while (sc.hasNextLine()) {
+                            vototemp = sc.nextInt();
+                        }
+                        entrada.close();
+                    } catch (IOException e) {
+                        System.out.println("No se encontro el archivo");
+                    }
+                    archivo = new File("votosDiputadura" + indiceDepartamento + nombreArchivo + ".txt");
+                    try {
+                        escribir = new PrintWriter(archivo, "utf-8");
+                        escribir.print(vototemp + 1);
+                        escribir.close();
+
+
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                    break;
                 default:
                     System.out.println("error");
                     System.exit(0);
             }
         System.out.println("Felicidades, su voto ha sido agregado");
         }
+
+    public static void AgregarListaVotante(Scanner r,int tipo,String municipalidadPostulada,String cedula){
+
+
+        File archivo;
+        FileWriter agregar;
+        PrintWriter escribir;
+        switch(tipo){
+            case 1:
+                archivo = new File("listaVotos"+municipalidadPostulada+".txt");
+                if(!archivo.exists()){
+
+                    try{
+                        archivo.createNewFile();
+                        escribir = new PrintWriter(archivo,"utf-8");
+                        escribir.print(cedula+"\n");
+                        escribir.close();
+                    } catch(Exception e){
+                        e.printStackTrace();
+                    }
+                }else{
+                    try{
+                        agregar = new FileWriter(archivo,true);
+                        escribir = new PrintWriter(agregar);
+                        escribir.print(cedula+"\n");
+                        escribir.close();
+                    }catch (Exception e){
+                        e.printStackTrace();
+                    }
+
+                }
+                break;
+            case 2:
+                archivo = new File("listaVotosPresidencia.txt");
+                if(!archivo.exists()){
+
+                    try{
+                        archivo.createNewFile();
+                        escribir = new PrintWriter(archivo,"utf-8");
+                        escribir.print(cedula+"\n");
+                        escribir.close();
+                    } catch(Exception e){
+                        e.printStackTrace();
+                    }
+                }else{
+                    try{
+                        agregar = new FileWriter(archivo,true);
+                        escribir = new PrintWriter(agregar);
+                        escribir.print(cedula+"\n");
+                        escribir.close();
+                    }catch (Exception e){
+                        e.printStackTrace();
+                    }
+
+                }
+                break;
+            case 3:
+                archivo = new File("listaVotosDiputadura.txt");
+                if(!archivo.exists()){
+
+                    try{
+                        archivo.createNewFile();
+                        escribir = new PrintWriter(archivo,"utf-8");
+                        escribir.print(cedula+"\n");
+                        escribir.close();
+                    } catch(Exception e){
+                        e.printStackTrace();
+                    }
+                }else{
+                    try{
+                        agregar = new FileWriter(archivo,true);
+                        escribir = new PrintWriter(agregar);
+                        escribir.print(cedula+"\n");
+                        escribir.close();
+                    }catch (Exception e){
+                        e.printStackTrace();
+                    }
+
+                }
+                break;
+            default:
+                System.out.println("error");
+        }
+    }
+    public static boolean verificarListaVotante(Scanner r, String cedula, int tipo,String municipalidadPostulada) {
+        boolean existe = false;
+        ArrayList<String> listaCedula = new ArrayList<String>();
+        switch (tipo) {
+            case 1:
+
+                try {
+
+                    FileReader entrada = new FileReader("listaVotos" + municipalidadPostulada + ".txt");
+                    BufferedReader br = new BufferedReader(entrada);
+                    Scanner sc = new Scanner(entrada);
+                    while (sc.hasNextLine()) {
+                        listaCedula.add(sc.nextLine());
+
+                    }
+                    entrada.close();
+
+                } catch (IOException e) {
+                    System.out.println("No se encontro el archivo");
+                    existe = false;
+                    return existe;
+                }
+                if (listaCedula.contains(cedula) == true) {
+                    existe = true;
+                    return existe;
+                } else {
+                    existe = false;
+
+                }
+                break;
+            case 2:
+
+                try {
+                    FileReader entrada = new FileReader("listaVotosPresidencia.txt");
+                    BufferedReader br = new BufferedReader(entrada);
+                    Scanner sc = new Scanner(entrada);
+                    while (sc.hasNextLine()) {
+                        listaCedula.add(sc.nextLine());
+
+                    }
+                    entrada.close();
+
+                } catch (IOException e) {
+                    System.out.println("No se encontro el archivo");
+                    existe = false;
+                    return existe;
+                }
+                if (listaCedula.contains(cedula) == true) {
+                    existe = true;
+                    return existe;
+                } else {
+                    existe = false;
+                }
+                break;
+            case 3:
+                try {
+                    FileReader entrada = new FileReader("listaVotosDiputadura.txt");
+                    BufferedReader br = new BufferedReader(entrada);
+                    Scanner sc = new Scanner(entrada);
+                    while (sc.hasNextLine()) {
+                        listaCedula.add(sc.nextLine());
+                    }
+                    entrada.close();
+
+                } catch (IOException e) {
+                    System.out.println("No se encontro el archivo");
+                    existe = false;
+                    return existe;
+                }
+                if (listaCedula.contains(cedula) == true) {
+                    existe = true;
+                    return existe;
+                } else {
+                    existe = false;
+
+                }
+                break;
+
+            default:
+                System.out.println("error");
+
+        }
+        return existe;
+    }
+
     public static boolean elegibilidadPresidencial(){
         Scanner r = new Scanner(System.in);
         boolean elegible = false;
@@ -551,11 +875,6 @@ public class Main {
         }
         return elegible;
     }
-    /*public static void clearScreen(){
-        for(int clear = 0; clear < 1000; clear++) {
-            System.out.println("\b") ;
-        }
-    }*/
     public static boolean elegibilidadAlcaldia(){
         Scanner r = new Scanner(System.in);
         boolean elegible = false;
@@ -652,6 +971,7 @@ public class Main {
 
         return elegible;
     }
+
     public static void inscripcionAlcaldia(){
         Scanner r = new Scanner(System.in);
         boolean registrado = false;
@@ -683,7 +1003,7 @@ public class Main {
             System.out.println("Ingrese el Partido Politico que representa: ");
             System.out.println("1. Partido Liberal\t\t2. Partido Nacional\t\t3. Partido Libertad y Refundacion(Libre)");
             partidoPolitico = r.nextInt();
-            registrado=revisionPartido(tipo,partidoPolitico,municipalidadPostulada);
+            registrado=revisionPartido(tipo,partidoPolitico,municipalidadPostulada,indiceDepartamento);
             if(registrado==true){
                 System.exit(0);
             }else if(registrado == false){
@@ -897,140 +1217,25 @@ public class Main {
 
 
     }
-    public static boolean revisionPartido(int tipo,int partido,String municipalidadPostulada) {
-        boolean registrado = false;
-        //int tipo= 1 = Alcalde, 2 = Presidente
-        File archivo;
-        FileWriter agregar;
-        PrintWriter escribir;
-        boolean candidatoRegistrado = true;
-        switch (tipo) {
-            case 1:
-                if (partido == 1) {
-                archivo = new File("partidoLiberal" + municipalidadPostulada + ".txt");
-                if (!archivo.exists()) {
-
-                    try {
-                        archivo.createNewFile();
-                        escribir = new PrintWriter(archivo, "utf-8");
-                        escribir.print(candidatoRegistrado);
-                        escribir.close();
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                } else {
-                    registrado = true;
-                    System.out.println("Ya existe un candidato Liberal registrado en la municipalidad: " + municipalidadPostulada);
-                }
-            } else if (partido == 2) {
-                archivo = new File("partidoNacional" + municipalidadPostulada + ".txt");
-                if (!archivo.exists()) {
-
-                    try {
-                        archivo.createNewFile();
-                        escribir = new PrintWriter(archivo, "utf-8");
-                        escribir.print(candidatoRegistrado);
-                        escribir.close();
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                } else {
-                    registrado = true;
-                    System.out.println("Ya existe un candidato Nacional registrado en la municipalidad: " + municipalidadPostulada);
-                }
-            } else if (partido == 3) {
-                archivo = new File("partidoLibre" + municipalidadPostulada + ".txt");
-                if (!archivo.exists()) {
-
-                    try {
-                        archivo.createNewFile();
-                        escribir = new PrintWriter(archivo, "utf-8");
-                        escribir.print(candidatoRegistrado);
-                        escribir.close();
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                } else {
-                    registrado = true;
-                    System.out.println("Ya existe un candidato Libre registrado en la municipalidad: " + municipalidadPostulada);
-                }
-            }
-            break;
-            case 2:
-                if (partido == 1) {
-                    archivo = new File("partidoLiberal" + municipalidadPostulada + ".txt");
-                    if (!archivo.exists()) {
-
-                        try {
-                            archivo.createNewFile();
-                            escribir = new PrintWriter(archivo, "utf-8");
-                            escribir.print(candidatoRegistrado);
-                            escribir.close();
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
-                    } else {
-                        registrado = true;
-                        System.out.println("Ya existe un candidato Liberal registrado en la municipalidad: " + municipalidadPostulada);
-                    }
-                } else if (partido == 2) {
-                    archivo = new File("partidoNacional" + municipalidadPostulada + ".txt");
-                    if (!archivo.exists()) {
-
-                        try {
-                            archivo.createNewFile();
-                            escribir = new PrintWriter(archivo, "utf-8");
-                            escribir.print(candidatoRegistrado);
-                            escribir.close();
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
-                    } else {
-                        registrado = true;
-                        System.out.println("Ya existe un candidato Nacional registrado en la municipalidad: " + municipalidadPostulada);
-                    }
-                } else if (partido == 3) {
-                    archivo = new File("partidoLibre" + municipalidadPostulada + ".txt");
-                    if (!archivo.exists()) {
-
-                        try {
-                            archivo.createNewFile();
-                            escribir = new PrintWriter(archivo, "utf-8");
-                            escribir.print(candidatoRegistrado);
-                            escribir.close();
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
-                    } else {
-                        registrado = true;
-                        System.out.println("Ya existe un candidato Libre registrado en la municipalidad: " + municipalidadPostulada);
-                    }
-                }
-                break;
-            default:
-                System.out.println("error!");
-        }
-
-        return registrado;
-    }
     public static void inscripcionPresidencial(){
         Scanner r = new Scanner(System.in);
         boolean registrado = false;
         Presidencia nuevoPresidente = new Presidencia();
         String tipoCandidatura = "Presidencia";
-        int partidoPolitico=0,tipo = 2,numeroCandidatos=0,votos=0;
+        int partidoPolitico=0,tipo = 2,numeroCandidatos=0,votos=0,indiceDepartamento=0;
 
         while(partidoPolitico<1||partidoPolitico>3){
             System.out.println("Ingrese el Partido Politico que representa: ");
             System.out.println("1. Partido Liberal\t\t2. Partido Nacional\t\t3. Partido Libertad y Refundacion(Libre)");
             partidoPolitico = r.nextInt();
-            registrado=revisionPartido(tipo,partidoPolitico,tipoCandidatura);
+            registrado=revisionPartido(tipo,partidoPolitico,tipoCandidatura,indiceDepartamento);
             if(registrado==true){
                 System.exit(0);
             }else if(registrado == false){
                 System.out.println(" ");
                 System.out.println("A continuacion ingrese la siguiente informacion personal: ");
                 System.out.println(" ");
+                r.nextLine();
                 System.out.println("Ingrese su primera inicial seguido por su apellido, ejemplo: (GBrocato): ");
                 nuevoPresidente.setNombreArchivo(r.nextLine());
                 System.out.println("Ingrese su Primer Nombre: ");
@@ -1222,11 +1427,13 @@ public class Main {
         }
 
     }
-    public static void inscripcionDiputadura(){
+    public static void inscripcionDiputadura() {
         Scanner r = new Scanner(System.in);
         Diputadura nuevoDiputado = new Diputadura();
-        String tipoCandidatura = "Diputadura",diputaduraPostulada="ninguna";
-        int partidoPolitico = 0, indiceDepartamento = 0;
+        String tipoCandidatura = "Diputadura", municipalidadPostulada = "ninguna";
+        int partidoPolitico = 0, indiceDepartamento = 0, tipo = 3;
+        int numeroCandidatos = 0, votos = 0;
+        boolean registrado = true;
 
         System.out.println(" ");
         while (indiceDepartamento < 1 || indiceDepartamento > 18) {
@@ -1242,100 +1449,416 @@ public class Main {
             System.out.println(" ");
             System.out.println("17. Valle\t\t18. Yoro");
             indiceDepartamento = r.nextInt();
-            if(indiceDepartamento<1||indiceDepartamento>18){
+            if (indiceDepartamento < 1 || indiceDepartamento > 18) {
                 System.out.println("***Su eleccion no es valida, Porfavor ingrese el indice de uno de los departamentos***");
             }
         }
-        System.out.println("A continuacion ingrese la siguiente informacion personal: ");
-        System.out.println(" ");
-        r.nextLine();
-        System.out.println("Ingrese su primera inicial seguido por su apellido, ejemplo: (GBrocato): ");
-        nuevoDiputado.setNombreArchivo(r.nextLine());
-        System.out.println("Ingrese su Primer Nombre: ");
-        nuevoDiputado.setPrimerNombre(r.nextLine());
-        System.out.println("Ingrese su Segundo Nombre( escriba: nada - si no aplica): ");
-        nuevoDiputado.setSegundoNombre(r.nextLine());
-        System.out.println("Ingrese su Primer Apellido: ");
-        nuevoDiputado.setPrimerApellido(r.nextLine());
-        System.out.println("Ingrese su Segundo Apellido: ");
-        nuevoDiputado.setSegundoApellido(r.nextLine());
-        System.out.println("Ingrese su Numero de Identificacion: ");
-        nuevoDiputado.setNumeroIdentificacion(r.nextLine());
-        System.out.println("Ingrese su Fecha de Nacimiento: (dd/mm/aaaa)");
-        nuevoDiputado.setFechaNacimiento(r.nextLine());
-        System.out.println("Ingrese su Lugar de Nacimiento: ");
-        nuevoDiputado.setLugarNacimiento(r.nextLine());
-        while(partidoPolitico<1||partidoPolitico>3){
-            System.out.println("Ingrese el Partido Politico que representa: ");
-            System.out.println("1. Partido Liberal\t\t2. Partido Nacional\t\t3. Partido Libertad y Refundacion(Libre)");
-            partidoPolitico = r.nextInt();
-            if(partidoPolitico<1||partidoPolitico>3) {
-                System.out.println("La eleccion es incorrecta, Porfavor ingrese un partido politico de la lista!");
+            while (partidoPolitico < 1 || partidoPolitico > 3) {
+                System.out.println("Ingrese el Partido Politico que representa: ");
+                System.out.println("1. Partido Liberal\t\t2. Partido Nacional\t\t3. Partido Libertad y Refundacion(Libre)");
+                partidoPolitico = r.nextInt();
+                registrado = revisionPartido(tipo, partidoPolitico, municipalidadPostulada, indiceDepartamento);
+                if (registrado == true) {
+                    System.exit(0);
+                } else if (registrado == false) {
+                    System.out.println("A continuacion ingrese la siguiente informacion personal: ");
+                    System.out.println(" ");
+                    r.nextLine();
+                    System.out.println("Ingrese su primera inicial seguido por su apellido, ejemplo: (GBrocato): ");
+                    nuevoDiputado.setNombreArchivo(r.nextLine());
+                    //nombreArchivo = r.nextLine();
+                    System.out.println("Ingrese su Primer Nombre: ");
+                    nuevoDiputado.setPrimerNombre(r.nextLine());
+                    //primerNombre = r.nextLine();
+                    System.out.println("Ingrese su Segundo Nombre( escriba: nada - si no aplica): ");
+                    nuevoDiputado.setSegundoNombre(r.nextLine());
+                    //segundoNombre = r.nextLine();
+                    System.out.println("Ingrese su Primer Apellido: ");
+                    nuevoDiputado.setPrimerApellido(r.nextLine());
+                    //primerApellido = r.nextLine();
+                    System.out.println("Ingrese su Segundo Apellido: ");
+                    nuevoDiputado.setSegundoApellido(r.nextLine());
+                    //segundoApellido = r.nextLine();
+                    System.out.println("Ingrese su Numero de Identificacion: ");
+                    nuevoDiputado.setNumeroIdentificacion(r.nextLine());
+                    //numeroIdentificacion = r.nextLine();
+                    System.out.println("Ingrese su Fecha de Nacimiento: (dd/mm/aaaa)");
+                    nuevoDiputado.setFechaNacimiento(r.nextLine());
+                    //fechaNacimiento = r.nextLine();
+                    System.out.println("Ingrese su Lugar de Nacimiento: ");
+                    nuevoDiputado.setLugarNacimiento(r.nextLine());
+                    //lugarNacimiento = r.nextLine();
+
+
+                    File archivo;
+                    FileWriter agregar;
+                    PrintWriter escribir;
+                    archivo = new File(nuevoDiputado.getNombreArchivo() + "Diputadura.txt");
+                    if (!archivo.exists()) {
+                        System.out.println("Archivo del candidato" + nuevoDiputado.getPrimerNombre() + " " + nuevoDiputado.getPrimerApellido() + " a sido creado.");
+                        try { //codigo donde pueden ocurrir errores(excepciones)
+                            archivo.createNewFile();
+                            escribir = new PrintWriter(archivo, "utf-8");
+                            escribir.println(nuevoDiputado.getNombreArchivo());
+                            escribir.println(nuevoDiputado.getPrimerNombre());
+                            escribir.println(nuevoDiputado.getSegundoNombre());
+                            escribir.println(nuevoDiputado.getPrimerApellido());
+                            escribir.println(nuevoDiputado.getSegundoApellido());
+                            escribir.println(nuevoDiputado.getNumeroIdentificacion());
+                            escribir.println(nuevoDiputado.getFechaNacimiento());
+                            escribir.println(nuevoDiputado.getLugarNacimiento());
+                            escribir.println(partidoPolitico);
+                            escribir.println(tipoCandidatura);
+                            escribir.println(indiceDepartamento);
+                            escribir.close();
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    } else {
+                        System.out.println("El archivo del candidato" + nuevoDiputado.getPrimerNombre() + " " + nuevoDiputado.getPrimerApellido() + " ya existe.");
+                    }
+                    archivo = new File("cantidadCandidatos" + indiceDepartamento + ".txt");
+                    if (!archivo.exists()) {
+
+                        try {
+                            archivo.createNewFile();
+                            escribir = new PrintWriter(archivo, "utf-8");
+                            escribir.print(numeroCandidatos + 1);
+                            escribir.close();
+
+
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    } else {
+                        try {
+                            FileReader entrada = new FileReader("cantidadCandidatos" + indiceDepartamento + ".txt");
+                            BufferedReader br = new BufferedReader(entrada);
+                            Scanner sc = new Scanner(entrada);
+                            while (sc.hasNextLine()) {
+                                numeroCandidatos = sc.nextInt();
+                            }
+                            entrada.close();
+                            try {
+                                escribir = new PrintWriter(archivo, "utf-8");
+                                escribir.print(numeroCandidatos + 1);
+                                escribir.close();
+
+
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+
+
+                        } catch (IOException e) {
+                            System.out.println("No se encontro el archivo");
+                        }
+                    }
+                    archivo = new File("candidatosDiputadura" + indiceDepartamento + ".txt");
+                    if (!archivo.exists()) {
+
+                        try {
+                            archivo.createNewFile();
+                            escribir = new PrintWriter(archivo, "utf-8");
+                            escribir.print(nuevoDiputado.getPrimerNombre() + " " + nuevoDiputado.getPrimerApellido() + " " + nombrePartido(partidoPolitico) + "\n");
+                            escribir.close();
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    } else {
+                        try {
+                            agregar = new FileWriter(archivo, true);
+                            escribir = new PrintWriter(agregar);
+                            escribir.print(nuevoDiputado.getPrimerNombre() + " " + nuevoDiputado.getPrimerApellido() + " " + nombrePartido(partidoPolitico) + "\n");
+                            escribir.close();
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+
+                    }
+                    archivo = new File("nombreArchivoDiputadura" + indiceDepartamento + ".txt");
+                    if (!archivo.exists()) {
+
+                        try {
+                            archivo.createNewFile();
+                            escribir = new PrintWriter(archivo, "utf-8");
+                            escribir.print(nuevoDiputado.getNombreArchivo() + "\n");
+                            escribir.close();
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    } else {
+                        try {
+                            agregar = new FileWriter(archivo, true);
+                            escribir = new PrintWriter(agregar);
+                            escribir.print(nuevoDiputado.getNombreArchivo() + "\n");
+                            escribir.close();
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+
+                    }
+                    archivo = new File("votosDiputadura" + indiceDepartamento + nuevoDiputado.getNombreArchivo() + ".txt");
+                    if (!archivo.exists()) {
+
+                        try {
+                            archivo.createNewFile();
+                            escribir = new PrintWriter(archivo, "utf-8");
+                            escribir.print(votos);
+                            escribir.close();
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    } else {
+                        System.out.println("El archivo ya existe");
+                    }
+                }
+                if (partidoPolitico < 1 || partidoPolitico > 3) {
+                    System.out.println("La eleccion es incorrecta, Porfavor ingrese un partido politico de la lista!");
+                }
             }
         }
 
+    public static boolean revisionPartido(int tipo,int partido,String municipalidadPostulada,int indiceDepartamento) {
+        boolean registrado = false;
+        //int tipo= 1 = Alcalde, 2 = Presidente
         File archivo;
         FileWriter agregar;
         PrintWriter escribir;
-        archivo = new File(nuevoDiputado.getNombreArchivo()+"Diputadura.txt");
-        if(!archivo.exists()){
-            System.out.println("Archivo del candidato "+nuevoDiputado.getPrimerNombre()+" "+nuevoDiputado.getPrimerApellido()+" a sido creado.");
-            try { //codigo donde pueden ocurrir errores(excepciones)
-                archivo.createNewFile();
-                escribir = new PrintWriter(archivo,"utf-8");
-                escribir.println(nuevoDiputado.getNombreArchivo());
-                escribir.println(nuevoDiputado.getPrimerNombre());
-                escribir.println(nuevoDiputado.getSegundoNombre());
-                escribir.println(nuevoDiputado.getPrimerApellido());
-                escribir.println(nuevoDiputado.getSegundoApellido());
-                escribir.println(nuevoDiputado.getNumeroIdentificacion());
-                escribir.println(nuevoDiputado.getFechaNacimiento());
-                escribir.println(nuevoDiputado.getLugarNacimiento());
-                escribir.println(partidoPolitico);
-                escribir.println(tipoCandidatura);
-                escribir.println(indiceDepartamento);
-                escribir.println(diputaduraPostulada);
-                escribir.close();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        } else {
-            System.out.println("El archivo del candidato "+nuevoDiputado.getPrimerNombre()+" "+nuevoDiputado.getPrimerApellido()+" ya existe.");
-        }
-        archivo = new File("candidatosDiputadura.txt");
-        if(!archivo.exists()){
+        boolean candidatoRegistrado = true;
+        int numeroDiputados = 0,diputadosDepartamento = 0;
+        switch (tipo) {
+            case 1:
+                if (partido == 1) {
+                    archivo = new File("partidoLiberal" + municipalidadPostulada + ".txt");
+                    if (!archivo.exists()) {
 
-            try{
-                System.out.println("El archivo de candidatos fue creado");
-                archivo.createNewFile();
-                escribir = new PrintWriter(archivo,"utf-8");
-                escribir.print(nuevoDiputado.getPrimerApellido());
-                escribir.print(" ");
-                escribir.print(nuevoDiputado.getPrimerNombre());
-                escribir.print(" ");
-                escribir.print(partidoPolitico);
-                escribir.print(" ");
-                escribir.print(indiceDepartamento+"\n");
-                escribir.close();
-            } catch(Exception e){
-                e.printStackTrace();
-            }
-        }else{
-            System.out.println("El archivo ya existe");
-            try{
-                agregar = new FileWriter(archivo,true);
-                escribir = new PrintWriter(agregar);
-                escribir.print(nuevoDiputado.getPrimerApellido());
-                escribir.print(" ");
-                escribir.print(nuevoDiputado.getPrimerNombre());
-                escribir.print(" ");
-                escribir.print(partidoPolitico+"\n");
-                escribir.close();
-            }catch (Exception e){
-                e.printStackTrace();
-            }
+                        try {
+                            archivo.createNewFile();
+                            escribir = new PrintWriter(archivo, "utf-8");
+                            escribir.print(candidatoRegistrado);
+                            escribir.close();
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    } else {
+                        registrado = true;
+                        System.out.println("Ya existe un candidato Liberal registrado en la municipalidad: " + municipalidadPostulada);
+                    }
+                } else if (partido == 2) {
+                    archivo = new File("partidoNacional" + municipalidadPostulada + ".txt");
+                    if (!archivo.exists()) {
 
+                        try {
+                            archivo.createNewFile();
+                            escribir = new PrintWriter(archivo, "utf-8");
+                            escribir.print(candidatoRegistrado);
+                            escribir.close();
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    } else {
+                        registrado = true;
+                        System.out.println("Ya existe un candidato Nacional registrado en la municipalidad: " + municipalidadPostulada);
+                    }
+                } else if (partido == 3) {
+                    archivo = new File("partidoLibre" + municipalidadPostulada + ".txt");
+                    if (!archivo.exists()) {
+
+                        try {
+                            archivo.createNewFile();
+                            escribir = new PrintWriter(archivo, "utf-8");
+                            escribir.print(candidatoRegistrado);
+                            escribir.close();
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    } else {
+                        registrado = true;
+                        System.out.println("Ya existe un candidato Libre registrado en la municipalidad: " + municipalidadPostulada);
+                    }
+                }
+                break;
+            case 2:
+                if (partido == 1) {
+                    archivo = new File("partidoLiberal" + municipalidadPostulada + ".txt");
+                    if (!archivo.exists()) {
+
+                        try {
+                            archivo.createNewFile();
+                            escribir = new PrintWriter(archivo, "utf-8");
+                            escribir.print(candidatoRegistrado);
+                            escribir.close();
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    } else {
+                        registrado = true;
+                        System.out.println("Ya existe un candidato Liberal registrado en la municipalidad: " + municipalidadPostulada);
+                    }
+                } else if (partido == 2) {
+                    archivo = new File("partidoNacional" + municipalidadPostulada + ".txt");
+                    if (!archivo.exists()) {
+
+                        try {
+                            archivo.createNewFile();
+                            escribir = new PrintWriter(archivo, "utf-8");
+                            escribir.print(candidatoRegistrado);
+                            escribir.close();
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    } else {
+                        registrado = true;
+                        System.out.println("Ya existe un candidato Nacional registrado en la municipalidad: " + municipalidadPostulada);
+                    }
+                } else if (partido == 3) {
+                    archivo = new File("partidoLibre" + municipalidadPostulada + ".txt");
+                    if (!archivo.exists()) {
+
+                        try {
+                            archivo.createNewFile();
+                            escribir = new PrintWriter(archivo, "utf-8");
+                            escribir.print(candidatoRegistrado);
+                            escribir.close();
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    } else {
+                        registrado = true;
+                        System.out.println("Ya existe un candidato Libre registrado en la municipalidad: " + municipalidadPostulada);
+                    }
+                }
+                break;
+            case 3:
+                diputadosDepartamento = cantidadDiputados(indiceDepartamento);
+                if (partido == 1) {
+                    archivo = new File("partidoLiberal" + indiceDepartamento + ".txt");
+                    if (!archivo.exists()) {
+
+                        try {
+                            archivo.createNewFile();
+                            escribir = new PrintWriter(archivo, "utf-8");
+                            escribir.print(numeroDiputados+1);
+                            escribir.close();
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    } else{
+                        try{
+                            FileReader entrada = new FileReader("partidoLiberal" + indiceDepartamento + ".txt");
+                            BufferedReader br = new BufferedReader(entrada);
+                            Scanner sc = new Scanner(entrada);
+                            while(sc.hasNextLine()){
+                                numeroDiputados = sc.nextInt();
+                            }
+                            entrada.close();
+                            if(numeroDiputados == diputadosDepartamento){
+                                registrado = true;
+                                System.out.println("Ya existe el numero limite de candidatos registrados para el departamento elegido");
+                            } else{
+                                try{
+                                    escribir = new PrintWriter(archivo,"utf-8");
+                                    escribir.print(numeroDiputados+1);
+                                    escribir.close();
+
+
+                                }catch (Exception e){
+                                    e.printStackTrace();
+                                }
+                            }
+
+                        }catch(IOException e){
+                            System.out.println("No se encontro el archivo");
+                        }
+                    }
+                } else if (partido == 2) {
+                    archivo = new File("partidoNacional" + indiceDepartamento + ".txt");
+                    if (!archivo.exists()) {
+
+                        try {
+                            archivo.createNewFile();
+                            escribir = new PrintWriter(archivo, "utf-8");
+                            escribir.print(numeroDiputados+1);
+                            escribir.close();
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    } else{
+                        try{
+                            FileReader entrada = new FileReader("partidoNacional" + indiceDepartamento + ".txt");
+                            BufferedReader br = new BufferedReader(entrada);
+                            Scanner sc = new Scanner(entrada);
+                            while(sc.hasNextLine()){
+                                numeroDiputados = sc.nextInt();
+                            }
+                            entrada.close();
+                            if(numeroDiputados == diputadosDepartamento){
+                                registrado = true;
+                                System.out.println("Ya existe el numero limite de candidatos registrados para el departamento elegido");
+                            } else{
+                                try{
+                                    escribir = new PrintWriter(archivo,"utf-8");
+                                    escribir.print(numeroDiputados+1);
+                                    escribir.close();
+
+
+                                }catch (Exception e){
+                                    e.printStackTrace();
+                                }
+                            }
+
+                        }catch(IOException e){
+                            System.out.println("No se encontro el archivo");
+                        }
+                    }
+                }else if(partido == 3){
+                    archivo = new File("partidoLibre" + indiceDepartamento + ".txt");
+                    if (!archivo.exists()) {
+
+                        try {
+                            archivo.createNewFile();
+                            escribir = new PrintWriter(archivo, "utf-8");
+                            escribir.print(numeroDiputados+1);
+                            escribir.close();
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    } else{
+                        try{
+                            FileReader entrada = new FileReader("partidoLibre" + indiceDepartamento + ".txt");
+                            BufferedReader br = new BufferedReader(entrada);
+                            Scanner sc = new Scanner(entrada);
+                            while(sc.hasNextLine()){
+                                numeroDiputados = sc.nextInt();
+                            }
+                            entrada.close();
+                            if(numeroDiputados == diputadosDepartamento){
+                                registrado = true;
+                                System.out.println("Ya existe el numero limite de candidatos registrados para el departamento elegido");
+                            } else{
+                                try{
+                                    escribir = new PrintWriter(archivo,"utf-8");
+                                    escribir.print(numeroDiputados+1);
+                                    escribir.close();
+
+
+                                }catch (Exception e){
+                                    e.printStackTrace();
+                                }
+                            }
+
+                        }catch(IOException e){
+                            System.out.println("No se encontro el archivo");
+                        }
+                    }
+                }
+                break;
+            default:
+                System.out.println("error!");
         }
+
+        return registrado;
     }
     public static String Departamentos(int IndiceDepartamento){
         Scanner r = new Scanner(System.in);
@@ -1636,6 +2159,124 @@ public class Main {
 
         }
         return municipalidadPostulada;
+    }
+    public static int cantidadDiputados(int IndiceDepartamento){
+        int cantidadCandidatos=0;
+        switch(IndiceDepartamento){
+            case 1:
+                cantidadCandidatos = 8;
+                break;
+            case 2:
+                cantidadCandidatos = 4;
+                break;
+            case 3:
+                cantidadCandidatos = 7;
+                break;
+            case 4:
+                cantidadCandidatos = 7;
+                break;
+            case 5:
+                cantidadCandidatos = 20;
+                break;
+            case 6:
+                cantidadCandidatos = 9;
+                break;
+            case 7:
+                cantidadCandidatos = 6;
+                break;
+            case 8:
+                cantidadCandidatos = 23;
+                break;
+            case 9:
+                cantidadCandidatos = 1;
+                break;
+            case 10:
+                cantidadCandidatos = 5;
+                break;
+            case 11:
+                cantidadCandidatos = 1;
+                break;
+            case 12:
+                cantidadCandidatos = 3;
+                break;
+            case 13:
+                cantidadCandidatos = 3;
+                break;
+            case 14:
+                cantidadCandidatos = 2;
+                break;
+            case 15:
+                cantidadCandidatos = 7;
+                break;
+            case 16:
+                cantidadCandidatos = 9;
+                break;
+            case 17:
+                cantidadCandidatos = 4;
+                break;
+            case 18:
+                cantidadCandidatos = 9;
+                break;
+            default:
+                System.out.println("Eleccion no valida.");
+
+
+        }
+
+        return cantidadCandidatos;
+    }
+    public static String nombrePartido(int partidoPolitico){
+        String nombre="";
+        if(partidoPolitico==1){
+            nombre="Partido Liberal";
+        }else if(partidoPolitico == 2){
+            nombre="Partido Nacional";
+        }else if(partidoPolitico == 3){
+            nombre="Partido Libre";
+        }
+
+        return nombre;
+    }
+    public static boolean votoDiputados(Scanner r,int indiceDepartamento,int tipo,int numeroCandidatos,ArrayList<String> listaDiputados,ArrayList<String>nArchivos){
+        int votosDisponibles = numeroCandidatos;
+        int voto, eleccion;
+        String nombreArchivo,municipalidadPostulada="ninguna";
+
+        boolean repetir = true;
+        boolean votacion = false;
+        while(repetir == true){
+            System.out.println("Los candidatos disponibles en la Diputadura de su departamento son: ");
+            System.out.println(" ");
+            for(int x=0;x<listaDiputados.size();x++){
+                System.out.println((x+1)+". "+listaDiputados.get(x));
+            }
+            voto = r.nextInt();
+            if(voto < 1 || voto > listaDiputados.size()){
+                System.out.println("Su eleccion no es valida, intente de nuevo.");
+                repetir = true;
+            } else{
+                System.out.println("Su voto es: "+listaDiputados.get(voto-1));
+                System.out.println("1. Confirmar\t\t\t2. Regresar");
+                eleccion = r.nextInt();
+                if(eleccion == 1){
+                    nombreArchivo = nArchivos.get(voto-1);
+                    castVote(tipo,municipalidadPostulada,nombreArchivo,indiceDepartamento);
+                    votosDisponibles--;
+                    listaDiputados.remove(voto-1);
+                    nArchivos.remove(voto-1);
+                    if(votosDisponibles==0){
+                        repetir=false;
+                        votacion = true;
+                    }
+
+                } else{
+                    repetir = false;
+                }
+            }
+        }
+
+
+        return votacion;
     }
 }
 
